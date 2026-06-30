@@ -21,7 +21,7 @@ class ModelClient:
                 from flask import current_app
                 self.api_key = current_app.config.get("OPENCODE_GO_API_KEY", "")
             except Exception:
-                pass
+                self.api_key = ""
         self.base_url = self.BASE_URL
 
     def generate_build_prompt(self, project_data: dict) -> str:

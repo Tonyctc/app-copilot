@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Novo Projeto{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">✦</div>
+                <h1 class="auth-title">Novo Projeto</h1>
+                <p class="auth-subtitle">Dê um nome ao seu novo aplicativo</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('project.new_project') }}" class="auth-form" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="text"
+                            name="name"
+                            id="projectName"
+                            class="form-input"
+                            placeholder=" "
+                            required
+                            autocomplete="off"
+                            maxlength="200"
+                        >
+                        <label for="projectName" class="floating-label">Nome do Projeto</label>
+                    </div>
+                    <p class="field-hint">Ex: App de Tarefas, Sistema de Vendas, Rede Social...</p>
+                </div>
+
+                <div class="phase-form-actions" style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                        <span class="btn-text">Criar Projeto</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <p class="auth-footer-text">
+                    <a href="{{ url_for('project.dashboard') }}" class="auth-link">← Voltar ao Dashboard</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

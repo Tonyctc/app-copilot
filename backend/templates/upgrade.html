@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Upgrade Premium{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">🚀</div>
+                <h1 class="auth-title">Upgrade para Premium</h1>
+                <p class="auth-subtitle">Desbloqueie todos os recursos do AppCopilot</p>
+            </div>
+
+            <div class="pricing-comparison" style="margin-bottom: 2rem;">
+                <div class="pricing-features">
+                    <div class="pricing-feature-row">
+                        <span>Exportação ZIP do Bundle OKF</span>
+                        <span class="feature-check free">✕</span>
+                        <span class="feature-check premium">✓</span>
+                    </div>
+                    <div class="pricing-feature-row">
+                        <span>Prompt de Construção com IA</span>
+                        <span class="feature-check free">✕</span>
+                        <span class="feature-check premium">✓</span>
+                    </div>
+                    <div class="pricing-feature-row">
+                        <span>Interface sem anúncios</span>
+                        <span class="feature-check free">✕</span>
+                        <span class="feature-check premium">✓</span>
+                    </div>
+                    <div class="pricing-feature-row">
+                        <span>Suporte Prioritário</span>
+                        <span class="feature-check free">✕</span>
+                        <span class="feature-check premium">✓</span>
+                    </div>
+                    <div class="pricing-feature-row">
+                        <span>Projetos ilimitados</span>
+                        <span class="feature-check free">✓</span>
+                        <span class="feature-check premium">✓</span>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.upgrade') }}" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="upgrade-value">
+                    <span class="upgrade-price">R$ 29,90</span>
+                    <span class="upgrade-period">/mês</span>
+                </div>
+
+                <div class="phase-form-actions" style="margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-accent btn-lg btn-block">
+                        <span class="btn-text">Assinar Premium</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <p class="auth-footer-text">
+                    <a href="{{ url_for('project.dashboard') }}" class="auth-link">← Voltar</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

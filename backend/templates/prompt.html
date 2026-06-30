@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Prompt de Construção: {{ project.name }}{% endblock %}
+
+{% block content %}
+<section class="wizard-section">
+    <div class="container">
+        <!-- Header -->
+        <div class="wizard-header">
+            <h1 class="wizard-title">Prompt de Construção do Projeto: {{ project.name }}</h1>
+            <p class="wizard-subtitle">
+                Prompt completo para agentes de IA codificadores baseado na especificação do seu projeto
+            </p>
+        </div>
+
+        <!-- Prompt Display -->
+        <div class="phase-panel active">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">🤖</div>
+                <div>
+                    <h2 class="phase-panel-title">Prompt de Construção</h2>
+                    <p class="phase-panel-subtitle">
+                        Copie o prompt abaixo ou faça o download para usar com agentes de IA como
+                        <strong>Hermes Agent</strong>, <strong>Claude Code</strong> ou <strong>Codex</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prompt-actions" style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-accent btn-lg" id="btnCopyPrompt" onclick="copiarPrompt()">
+                    📋 Copiar Prompt
+                </button>
+                <button type="button" class="btn btn-outline btn-lg" id="btnDownloadPrompt" onclick="baixarPrompt()">
+                    📥 Baixar como .md
+                </button>
+                <a href="{{ url_for('project.wizard', project_id=project.id) }}" class="btn btn-ghost btn-lg">
+                    ← Voltar ao Projeto
+                </a>
+            </div>
+
+            <div class="prompt-code-container" style="background:var(--bg); border:1px solid var(--surface-border); border-radius:var(--radius-md); overflow:hidden;">
+                <pre style="margin:0; padding:24px; max-height:600px; overflow-y:auto; font-family:'JetBrains Mono','Fira Code','Consolas',monospace; font-size:0.8125rem; line-height:1.7; color:var(--text); white-space:pre-wrap; word-wrap:break-word;"><code>{{ prompt_text if prompt_text else (project.build_prompt if project.build_prompt else 'Nenhum prompt gerado ainda. Volte ao assistente e gere o prompt de construção.') }}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/**
+ * Copia o texto do prompt para a área de transferência.
+ */
+function copiarPrompt() {
+    const codeEl = document.querySelector('.prompt-code-container code');
+    if (!codeEl) return;
+
+    const text = codeEl.textContent || codeEl.innerText;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            mostrarFeedback('✅ Prompt copiado para a área de transferência!', 'success');
+        }).catch(function() {
+            fallbackCopiar(text);
+        });
+    } else {
+        fallbackCopiar(text);
+    }
+}
+
+/**
+ * Fallback para navegadores sem suporte a Clipboard API.
+ */
+function fallbackCopiar(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        mostrarFeedback('✅ Prompt copiado para a área de transferência!', 'success');
+    } catch (err) {
+        mostrarFeedback('❌ Não foi possível copiar. Selecione o texto manualmente.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+
+/**
+ * Faz o download do prompt como arquivo .md.
+ */
+function baixarPrompt() {
+    const codeEl = document.querySelector('.prompt-code-container code');
+    if (!codeEl) return;
+
+    const text = codeEl.textContent || codeEl.innerText;
+    const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'prompt-construcao.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    mostrarFeedback('📥 Download iniciado!', 'success');
+}
+
+/**
+ * Exibe feedback temporário no topo da página.
+ */
+function mostrarFeedback(mensagem, tipo) {
+    let container = document.getElementById('flashContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'flash-container';
+        container.id = 'flashContainer';
+        document.body.appendChild(container);
+    }
+
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+
+    const div = document.createElement('div');
+    div.className = 'flash-message flash-' + tipo;
+    div.setAttribute('role', 'alert');
+    div.innerHTML = '<div class="flash-content">' +
+        '<span class="flash-icon">' + (icons[tipo] || 'ℹ') + '</span>' +
+        '<span class="flash-text">' + mensagem + '</span>' +
+        '</div>' +
+        '<button class="flash-close" onclick="this.parentElement.remove()">×</button>';
+
+    container.appendChild(div);
+
+    setTimeout(function() {
+        div.style.opacity = '0';
+        div.style.transform = 'translateX(100%)';
+        setTimeout(function() {
+            if (div.parentElement) {
+                div.remove();
+            }
+        }, 400);
+    }, 4000);
+}
+</script>
+{% endblock %}

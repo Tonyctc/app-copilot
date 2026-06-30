@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <div class="dashboard-greeting">
+                <h1 class="dashboard-title">Olá, <span class="gradient-text">{{ current_user.username }}</span> 👋</h1>
+                <p class="dashboard-subtitle">Bem-vindo ao seu painel de projetos</p>
+            </div>
+            <div class="dashboard-actions">
+                <a href="{{ url_for('project.new_project') }}" class="btn btn-primary btn-lg">
+                    <span class="btn-icon">+</span> Novo Projeto
+                </a>
+            </div>
+        </div>
+
+        <!-- User Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-projects">📁</div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ projects|length if projects else 0 }}</span>
+                    <span class="stat-label">Projetos</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-plan">
+                    {% if current_user.plan == 'premium' %}⭐{% else %}🔓{% endif %}
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">
+                        {% if current_user.plan == 'premium' %}Premium{% else %}Grátis{% endif %}
+                    </span>
+                    <span class="stat-label">Seu Plano</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-progress">📊</div>
+                <div class="stat-info">
+                    {% set completed = projects|selectattr('current_phase', 'equalto', 'delivery')|list|length if projects else 0 %}
+                    <span class="stat-value">{{ completed }}</span>
+                    <span class="stat-label">Concluídos</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-upgrade">🚀</div>
+                <div class="stat-info">
+                    {% if current_user.plan == 'free' %}
+                        <a href="{{ url_for('auth.upgrade') }}" class="stat-link">Fazer Upgrade</a>
+                    {% else %}
+                        <span class="stat-value">Premium</span>
+                    {% endif %}
+                    <span class="stat-label">Recursos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects List -->
+        <div class="projects-section">
+            <div class="projects-header">
+                <h2 class="projects-section-title">Seus Projetos</h2>
+                <span class="projects-count">{{ projects|length if projects else 0 }} projeto(s)</span>
+            </div>
+
+            {% if projects and projects|length > 0 %}
+                <div class="projects-grid">
+                    {% for project in projects %}
+                        <div class="project-card">
+                            <div class="project-card-header">
+                                <h3 class="project-name">{{ project.name }}</h3>
+                                <span class="project-phase-badge phase-{{ project.current_phase }}">
+                                    {% if project.current_phase == 'discovery' %}🔍 Descobrir
+                                    {% elif project.current_phase == 'definition' %}📐 Definir
+                                    {% elif project.current_phase == 'development' %}⚙️ Desenvolver
+                                    {% elif project.current_phase == 'delivery' %}🚀 Entregar
+                                    {% else %}📝 {{ project.current_phase }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="project-card-body">
+                                <p class="project-description">{{ project.description[:120] if project.description else 'Sem descrição' }}{% if project.description and project.description|length > 120 %}...{% endif %}</p>
+                                <div class="project-meta">
+                                    <span class="project-date">
+                                        <span class="meta-icon">📅</span>
+                                        {{ project.created_at.strftime('%d/%m/%Y') if project.created_at else '—' }}
+                                    </span>
+                                    <span class="project-phase-label">
+                                        <span class="meta-icon">📌</span>
+                                        Fase {{ project_phase_number(project.current_phase) if project_phase_number else '—' }}/4
+                                    </span>
+                                </div>
+                                <div class="project-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ project_progress(project.current_phase) if project_progress else 0 }}%;"></div>
+                                    </div>
+                                    <span class="progress-text">{{ project_progress(project.current_phase) if project_progress else 0 }}%</span>
+                                </div>
+                            </div>
+                            <div class="project-card-footer">
+                                <a href="{{ url_for('project.wizard', project_id=project.id) }}" class="btn btn-primary btn-sm">
+                                    {% if project.current_phase == 'delivery' %}Revisar{% else %}Continuar{% endif %}
+                                </a>
+                                {% if project.current_phase == 'delivery' %}
+                                    <a href="{{ url_for('project.export_project', project_id=project.id) }}" class="btn btn-outline btn-sm">
+                                        📦 Exportar
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-illustration">
+                        <span class="empty-icon">🚀</span>
+                    </div>
+                    <h3 class="empty-title">Nenhum projeto ainda</h3>
+                    <p class="empty-text">
+                        Comece agora mesmo a criar seu primeiro aplicativo utilizando a metodologia Double Diamond.
+                        É rápido, fácil e gratuito!
+                    </p>
+                    <a href="{{ url_for('project.new_project') }}" class="btn btn-primary btn-lg">
+                        <span class="btn-icon">+</span> Criar Primeiro Projeto
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if current_user.plan == 'free' %}
+        <!-- Upgrade Prompt -->
+        <div class="upgrade-prompt-card">
+            <div class="upgrade-prompt-content">
+                <div class="upgrade-prompt-icon">⭐</div>
+                <div class="upgrade-prompt-text">
+                    <h3>Desbloqueie recursos Premium</h3>
+                    <p>Analytics avançados, exportação em múltiplos formatos, suporte prioritário e muito mais!</p>
+                </div>
+                <a href="{{ url_for('auth.upgrade') }}" class="btn btn-primary">Ver Planos</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

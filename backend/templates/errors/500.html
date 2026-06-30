@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Erro Interno do Servidor{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="error-container">
+        <div class="error-code">500</div>
+
+        <div class="error-illustration">
+            <span class="error-icon">⚡</span>
+        </div>
+
+        <h1 class="error-title">Erro Interno do Servidor</h1>
+
+        <p class="error-message">
+            Algo deu errado. Nossa equipe foi notificada.
+        </p>
+
+        <div class="error-actions">
+            <a href="{{ url_for('auth.index') }}" class="btn btn-primary btn-lg">
+                ← Voltar ao Início
+            </a>
+        </div>
+
+        <div class="error-help">
+            <p>Precisa de ajuda? <a href="mailto:suporte@appcopilot.com" class="auth-link">suporte@appcopilot.com</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

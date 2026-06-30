@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Erro{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="error-container">
+        <div class="error-code">
+            {% if error_code %}
+                {{ error_code }}
+            {% else %}
+                404
+            {% endif %}
+        </div>
+
+        <div class="error-illustration">
+            {% if error_code == 404 %}
+                <span class="error-icon">🔍</span>
+            {% elif error_code == 403 %}
+                <span class="error-icon">🚫</span>
+            {% elif error_code == 500 %}
+                <span class="error-icon">⚡</span>
+            {% else %}
+                <span class="error-icon">⚠️</span>
+            {% endif %}
+        </div>
+
+        <h1 class="error-title">
+            {% if error_code == 404 %}
+                Página não encontrada
+            {% elif error_code == 403 %}
+                Acesso negado
+            {% elif error_code == 500 %}
+                Erro interno do servidor
+            {% else %}
+                Ocorreu um erro
+            {% endif %}
+        </h1>
+
+        <p class="error-message">
+            {% if error_message %}
+                {{ error_message }}
+            {% elif error_code == 404 %}
+                A página que você está procurando não existe ou foi movida.
+                Verifique o endereço ou volte para o início.
+            {% elif error_code == 403 %}
+                Você não tem permissão para acessar esta página.
+                Se você acha que isso é um erro, entre em contato com o administrador.
+            {% elif error_code == 500 %}
+                Desculpe, algo deu errado em nossos servidores.
+                Nossa equipe já foi notificada e estamos trabalhando para resolver.
+            {% else %}
+                Um erro inesperado ocorreu. Tente novamente mais tarde.
+            {% endif %}
+        </p>
+
+        <div class="error-actions">
+            <a href="{{ url_for('auth.index') }}" class="btn btn-primary btn-lg">
+                ← Voltar ao Início
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('project.dashboard') }}" class="btn btn-outline btn-lg">
+                    Ir para o Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="error-help">
+            <p>Precisa de ajuda? <a href="mailto:suporte@appcopilot.com" class="auth-link">suporte@appcopilot.com</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

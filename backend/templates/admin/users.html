@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Admin: Usuários{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Gerenciar Usuários</h1>
+                <p class="admin-subtitle">Gerencie todos os usuários cadastrados na plataforma</p>
+            </div>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">Dashboard</a>
+                <a href="{{ url_for('admin.users') }}" class="admin-nav-link active">Usuários</a>
+                <a href="{{ url_for('admin.projects') }}" class="admin-nav-link">Projetos</a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="admin-filters">
+            <div class="filter-group">
+                <label for="filterSearch" class="filter-label">Buscar</label>
+                <input type="text" id="filterSearch" class="form-input filter-input" placeholder="Nome ou e-mail..." onkeyup="filterTable()">
+            </div>
+            <div class="filter-group">
+                <label for="filterPlan" class="filter-label">Plano</label>
+                <select id="filterPlan" class="form-input filter-select" onchange="filterTable()">
+                    <option value="all">Todos</option>
+                    <option value="free">Grátis</option>
+                    <option value="premium">Premium</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterSort" class="filter-label">Ordenar</label>
+                <select id="filterSort" class="form-input filter-select" onchange="filterTable()">
+                    <option value="newest">Mais recentes</option>
+                    <option value="oldest">Mais antigos</option>
+                    <option value="name">Nome A-Z</option>
+                </select>
+            </div>
+            <div class="filter-group filter-summary">
+                <span class="filter-total" id="userCount">{{ users|length if users else 0 }}</span>
+                <span class="filter-total-label">usuário(s)</span>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="admin-table-card">
+            <div class="table-responsive">
+                <table class="admin-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>E-mail</th>
+                            <th>Plano</th>
+                            <th>Cadastro</th>
+                            <th>Projetos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if users and users|length > 0 %}
+                            {% for user in users %}
+                                <tr class="user-row" data-plan="{{ user.plan }}" data-name="{{ user.username.lower() }}" data-email="{{ user.email.lower() }}" data-created="{{ user.created_at.isoformat() if user.created_at else '' }}">
+                                    <td class="td-user-info">
+                                        <div class="user-cell">
+                                            <span class="user-avatar-sm">{{ user.username[:1].upper() }}</span>
+                                            <span class="user-name-sm">{{ user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="td-email">{{ user.email }}</td>
+                                    <td>
+                                        <span class="plan-badge-sm {% if user.plan == 'premium' %}premium{% elif user.is_admin %}admin{% else %}free{% endif %}">
+                                            {% if user.is_admin %}
+                                                Admin
+                                            {% elif user.plan == 'premium' %}
+                                                Premium
+                                            {% else %}
+                                                Grátis
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="td-date">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}</td>
+                                    <td class="td-count">{{ user.projects|length if user.projects else 0 }}</td>
+                                    <td class="td-actions">
+                                        {% if not user.is_admin %}
+                                            <div class="inline-plan-edit">
+                                                <form method="POST" action="{{ url_for('admin_users') }}" class="plan-update-form" style="display:inline;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                    <select name="plan" class="plan-select" onchange="this.form.submit()">
+                                                        <option value="free" {% if user.plan == 'free' %}selected{% endif %}>Grátis</option>
+                                                        <option value="premium" {% if user.plan == 'premium' %}selected{% endif %}>Premium</option>
+                                                    </select>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="td-empty">Nenhum usuário encontrado</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if users and users|length > 10 %}
+        <div class="admin-pagination">
+            <button class="btn btn-outline btn-sm" onclick="alert('Navegação de página seria implementada aqui')">
+                ← Anterior
+            </button>
+            <span class="pagination-info">Página 1 de {{ ((users|length / 10)|round(0, 'ceil'))|int }}</span>
+            <button class="btn btn-outline btn-sm" onclick="alert('Navegação de página seria implementada aqui')">
+                Próxima →
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterTable() {
+    const search = document.getElementById('filterSearch').value.toLowerCase();
+    const plan = document.getElementById('filterPlan').value;
+    const sort = document.getElementById('filterSort').value;
+    const rows = document.querySelectorAll('.user-row');
+
+    let visibleCount = 0;
+
+    // First pass: filter
+    const rowsArr = Array.from(rows);
+    rowsArr.forEach(function(row) {
+        const name = row.dataset.name;
+        const email = row.dataset.email;
+        const rowPlan = row.dataset.plan;
+        const created = row.dataset.created;
+
+        const matchesSearch = !search || name.includes(search) || email.includes(search);
+        const matchesPlan = plan === 'all' || rowPlan === plan;
+
+        if (matchesSearch && matchesPlan) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Sort visible rows
+    const tbody = document.querySelector('#usersTable tbody');
+    const visibleRows = rowsArr.filter(function(r) { return r.style.display !== 'none'; });
+
+    visibleRows.sort(function(a, b) {
+        if (sort === 'name') {
+            return a.dataset.name.localeCompare(b.dataset.name);
+        } else if (sort === 'newest') {
+            return b.dataset.created.localeCompare(a.dataset.created);
+        } else if (sort === 'oldest') {
+            return a.dataset.created.localeCompare(b.dataset.created);
+        }
+        return 0;
+    });
+
+    // Reorder in DOM
+    visibleRows.forEach(function(row) {
+        tbody.appendChild(row);
+    });
+
+    document.getElementById('userCount').textContent = visibleCount;
+}
+</script>
+{% endblock %}

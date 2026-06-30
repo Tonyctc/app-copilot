@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Criar Conta{% endblock %}
+
+{% block content %}
+<div class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">✦</div>
+                <h1 class="auth-title">Criar Conta</h1>
+                <p class="auth-subtitle">Comece a criar seus aplicativos gratuitamente</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form" novalidate>
+                {{ form.hidden_tag() if form }}
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="text"
+                            name="username"
+                            id="username"
+                            class="form-input {% if form and form.username.errors %}input-error{% endif %}"
+                            placeholder=" "
+                            value="{{ form.username.data if form and form.username.data else '' }}"
+                            required
+                            autocomplete="username"
+                            minlength="3"
+                            maxlength="64"
+                        >
+                        <label for="username" class="floating-label">Nome de Usuário</label>
+                        {% if form and form.username.errors %}
+                            <div class="field-error">
+                                {% for error in form.username.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            class="form-input {% if form and form.email.errors %}input-error{% endif %}"
+                            placeholder=" "
+                            value="{{ form.email.data if form and form.email.data else '' }}"
+                            required
+                            autocomplete="email"
+                        >
+                        <label for="email" class="floating-label">E-mail</label>
+                        {% if form and form.email.errors %}
+                            <div class="field-error">
+                                {% for error in form.email.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-input {% if form and form.password.errors %}input-error{% endif %}"
+                            placeholder=" "
+                            required
+                            autocomplete="new-password"
+                            minlength="8"
+                        >
+                        <label for="password" class="floating-label">Senha</label>
+                        {% if form and form.password.errors %}
+                            <div class="field-error">
+                                {% for error in form.password.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="password"
+                            name="confirm_password"
+                            id="confirm_password"
+                            class="form-input {% if form and form.confirm_password.errors %}input-error{% endif %}"
+                            placeholder=" "
+                            required
+                            autocomplete="new-password"
+                        >
+                        <label for="confirm_password" class="floating-label">Confirmar Senha</label>
+                        {% if form and form.confirm_password.errors %}
+                            <div class="field-error">
+                                {% for error in form.confirm_password.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Password Strength Indicator -->
+                <div class="password-strength" id="passwordStrength" style="display:none;">
+                    <div class="strength-bar-container">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <span class="strength-text" id="strengthText"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="agree_terms" id="agreeTerms" class="checkbox-input" required>
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text">
+                            Aceito os <a href="#" class="auth-link">Termos de Uso</a> e a
+                            <a href="#" class="auth-link">Política de Privacidade</a>
+                        </span>
+                    </label>
+                    {% if form and form.agree_terms and form.agree_terms.errors %}
+                        <div class="field-error">
+                            {% for error in form.agree_terms.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                    Criar Conta Grátis
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p class="auth-footer-text">
+                    Já tem conta?
+                    <a href="{{ url_for('auth.login') }}" class="auth-link">Faça login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    const strengthContainer = document.getElementById('passwordStrength');
+
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const val = this.value;
+            if (val.length === 0) {
+                strengthContainer.style.display = 'none';
+                return;
+            }
+            strengthContainer.style.display = 'block';
+
+            let strength = 0;
+            let feedback = '';
+
+            // Length check
+            if (val.length >= 8) strength += 25;
+            if (val.length >= 12) strength += 10;
+
+            // Contains lowercase
+            if (/[a-z]/.test(val)) strength += 10;
+
+            // Contains uppercase
+            if (/[A-Z]/.test(val)) strength += 15;
+
+            // Contains number
+            if (/[0-9]/.test(val)) strength += 15;
+
+            // Contains special char
+            if (/[^a-zA-Z0-9]/.test(val)) strength += 25;
+
+            // Clamp
+            strength = Math.min(100, Math.max(0, strength));
+
+            // Set bar
+            strengthBar.style.width = strength + '%';
+
+            if (strength < 30) {
+                strengthBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+                feedback = 'Muito fraca';
+            } else if (strength < 50) {
+                strengthBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+                feedback = 'Fraca';
+            } else if (strength < 70) {
+                strengthBar.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
+                feedback = 'Razoável';
+            } else if (strength < 85) {
+                strengthBar.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
+                feedback = 'Boa';
+            } else {
+                strengthBar.style.background = 'linear-gradient(90deg, #22d3ee, #6366f1)';
+                feedback = 'Excelente';
+            }
+
+            strengthText.textContent = 'Força da senha: ' + feedback;
+
+            // Confirm password match
+            const confirmInput = document.getElementById('confirm_password');
+            if (confirmInput && confirmInput.value.length > 0) {
+                if (val !== confirmInput.value) {
+                    confirmInput.classList.add('input-error');
+                } else {
+                    confirmInput.classList.remove('input-error');
+                }
+            }
+        });
+
+        // Confirm password matching
+        const confirmInput = document.getElementById('confirm_password');
+        if (confirmInput) {
+            confirmInput.addEventListener('input', function() {
+                if (this.value.length === 0) {
+                    this.classList.remove('input-error');
+                    return;
+                }
+                if (this.value !== passwordInput.value) {
+                    this.classList.add('input-error');
+                } else {
+                    this.classList.remove('input-error');
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

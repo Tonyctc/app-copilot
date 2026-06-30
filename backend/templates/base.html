@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>{% block title %}AppCopilot — Seu Copiloto de Desenvolvimento{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🚀</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" role="navigation" aria-label="Navegação principal">
+        <div class="navbar-container">
+            <a href="{{ url_for('auth.index') }}" class="navbar-brand">
+                <span class="brand-icon">✦</span>
+                <span class="brand-text">App<span class="brand-accent">Copilot</span></span>
+            </a>
+
+            <button class="navbar-toggle" id="navbarToggle" aria-label="Abrir menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="navbar-menu" id="navbarMenu">
+                <ul class="navbar-links">
+                    <li><a href="{{ url_for('auth.index') }}" class="nav-link">Início</a></li>
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('project.dashboard') }}" class="nav-link">Dashboard</a></li>
+                        {% if current_user.is_admin %}
+                            <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin</a></li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+
+                <div class="navbar-actions">
+                    {% if current_user.is_authenticated %}
+                        <div class="user-info">
+                            <span class="user-avatar">{{ current_user.username[:1].upper() }}</span>
+                            <span class="user-name">{{ current_user.username }}</span>
+                            <span class="plan-badge {% if current_user.plan == 'premium' %}premium{% elif current_user.is_admin %}admin{% else %}free{% endif %}">
+                                {% if current_user.is_admin %}
+                                    Admin
+                                {% elif current_user.plan == 'premium' %}
+                                    Premium
+                                {% else %}
+                                    Grátis
+                                {% endif %}
+                            </span>
+                        </div>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">Sair</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm">Entrar</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Cadastre-se</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container" id="flashContainer">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}" role="alert">
+                        <div class="flash-content">
+                            <span class="flash-icon">
+                                {% if category == 'success' %}✓{% elif category == 'error' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+                            </span>
+                            <span class="flash-text">{{ message }}</span>
+                        </div>
+                        <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Fechar">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <span class="brand-icon">✦</span>
+                <span class="brand-text">App<span class="brand-accent">Copilot</span></span>
+            </div>
+            <p class="footer-text">© {{ current_year if current_year else 2025 }} AppCopilot. Todos os direitos reservados.</p>
+            <p class="footer-tagline">Transformando ideias em aplicativos com a metodologia Double Diamond.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+
+    <!-- Auto-dismiss flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss flash messages after 5 seconds
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(msg) {
+                setTimeout(function() {
+                    if (msg.parentElement) {
+                        msg.style.opacity = '0';
+                        msg.style.transform = 'translateX(100%)';
+                        setTimeout(function() {
+                            if (msg.parentElement) {
+                                msg.remove();
+                            }
+                        }, 400);
+                    }
+                }, 5000);
+            });
+
+            // Mobile navbar toggle
+            const toggleBtn = document.getElementById('navbarToggle');
+            const menu = document.getElementById('navbarMenu');
+            if (toggleBtn && menu) {
+                toggleBtn.addEventListener('click', function() {
+                    menu.classList.toggle('active');
+                    toggleBtn.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

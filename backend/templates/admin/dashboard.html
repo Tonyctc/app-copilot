@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Painel de Administração</h1>
+                <p class="admin-subtitle">Visão geral e estatísticas da plataforma</p>
+            </div>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link active">Dashboard</a>
+                <a href="{{ url_for('admin.users') }}" class="admin-nav-link">Usuários</a>
+                <a href="{{ url_for('admin.projects') }}" class="admin-nav-link">Projetos</a>
+            </div>
+        </div>
+
+        <!-- Stats Cards Row -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-users">👥</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="totalUsers">{{ stats.total_users if stats else 0 }}</span>
+                    <span class="admin-stat-label">Total de Usuários</span>
+                </div>
+                <div class="admin-stat-change positive">
+                    <span>↑ {{ stats.new_users_month if stats else 0 }} este mês</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-free">🔓</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="freeUsers">{{ stats.free_users if stats else 0 }}</span>
+                    <span class="admin-stat-label">Grátis</span>
+                </div>
+                <div class="admin-stat-change">
+                    <span>{{ (stats.free_users / stats.total_users * 100)|round(1) if stats and stats.total_users and stats.total_users > 0 else 0 }}% da base</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-premium">⭐</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="premiumUsers">{{ stats.premium_users if stats else 0 }}</span>
+                    <span class="admin-stat-label">Premium</span>
+                </div>
+                <div class="admin-stat-change positive">
+                    <span>{{ (stats.premium_users / stats.total_users * 100)|round(1) if stats and stats.total_users and stats.total_users > 0 else 0 }}% da base</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-projects">📁</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="totalProjects">{{ stats.total_projects if stats else 0 }}</span>
+                    <span class="admin-stat-label">Projetos</span>
+                </div>
+                <div class="admin-stat-change">
+                    <span>{{ stats.projects_by_phase.discovery if stats and stats.projects_by_phase else 0 }} em Descoberta</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-completion">📊</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="completionRate">{{ stats.completion_rate|round(1) if stats and stats.completion_rate else 0 }}%</span>
+                    <span class="admin-stat-label">Taxa de Conclusão</span>
+                </div>
+                <div class="admin-stat-change">
+                    <span>{{ stats.completed_projects if stats else 0 }} projetos concluídos</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-revenue">💰</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="monthlyRevenue">R$ {{ stats.monthly_revenue|round(2) if stats and stats.monthly_revenue else '0,00' }}</span>
+                    <span class="admin-stat-label">Receita Mensal (simulada)</span>
+                </div>
+                <div class="admin-stat-change positive">
+                    <span>R$ 29,90 / usuário Premium</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-ads">📢</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="adsRevenue">R$ {{ stats.ads_revenue|round(2) if stats and stats.ads_revenue else '0,00' }}</span>
+                    <span class="admin-stat-label">Receita de Anúncios (estimada)</span>
+                </div>
+                <div class="admin-stat-change">
+                    <span>R$ 0,50 / 1.000 impressões</span>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-revenue-total">💎</div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-value" id="totalRevenue">R$ {{ (stats.monthly_revenue|default(0) + stats.ads_revenue|default(0))|round(2) if stats else '0,00' }}</span>
+                    <span class="admin-stat-label">Receita Total Estimada</span>
+                </div>
+                <div class="admin-stat-change positive">
+                    <span>Mensal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="admin-charts-row">
+            <div class="admin-chart-card">
+                <h3 class="chart-title">Crescimento de Usuários</h3>
+                <div class="chart-container">
+                    <canvas id="userGrowthChart" width="400" height="200"></canvas>
+                    <div class="chart-placeholder" id="userGrowthPlaceholder">
+                        {% if stats and stats.user_growth %}
+                            <div class="bar-chart">
+                                {% for point in stats.user_growth %}
+                                    <div class="bar-item">
+                                        <div class="bar-fill" style="height: {{ (point.count / stats.user_growth|max(attribute='count')|default(1).count * 100)|round if point.count else 0 }}%;" title="{{ point.month }}: {{ point.count }}"></div>
+                                        <span class="bar-label">{{ point.month[:3] if point.month else '' }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="chart-empty">Sem dados de crescimento disponíveis</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-chart-card">
+                <h3 class="chart-title">Distribuição de Planos</h3>
+                <div class="chart-container">
+                    <canvas id="planDistributionChart" width="400" height="200"></canvas>
+                    <div class="chart-placeholder" id="planDistributionPlaceholder">
+                        <div class="donut-chart">
+                            <div class="donut-segment free-segment" style="--p:{{ (stats.free_users / stats.total_users * 100)|round if stats and stats.total_users and stats.total_users > 0 else 100 }};--c:#6366f1;">
+                                <span class="donut-label">{{ stats.free_users if stats else 0 }} Grátis</span>
+                            </div>
+                            <div class="donut-segment premium-segment" style="--p:{{ (stats.premium_users / stats.total_users * 100)|round if stats and stats.total_users and stats.total_users > 0 else 0 }};--c:#22d3ee;">
+                                <span class="donut-label">{{ stats.premium_users if stats else 0 }} Premium</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-chart-card">
+                <h3 class="chart-title">Projetos por Fase</h3>
+                <div class="chart-container">
+                    <canvas id="projectsByPhaseChart" width="400" height="200"></canvas>
+                    <div class="chart-placeholder" id="projectsByPhasePlaceholder">
+                        {% if stats and stats.projects_by_phase %}
+                            <div class="bar-chart horizontal">
+                                {% set phases = {'discovery': 'Descobrir', 'definition': 'Definir', 'development': 'Desenvolver', 'delivery': 'Entregar'} %}
+                                {% for key, label in phases.items() %}
+                                    {% set count = stats.projects_by_phase[key] if stats.projects_by_phase and key in stats.projects_by_phase else 0 %}
+                                    <div class="bar-item">
+                                        <span class="bar-label">{{ label }}</span>
+                                        <div class="bar-track">
+                                            <div class="bar-fill phase-bar-{{ key }}" style="width: {{ (count / stats.total_projects * 100)|round if stats.total_projects and stats.total_projects > 0 else 0 }}%;"></div>
+                                        </div>
+                                        <span class="bar-value">{{ count }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="chart-empty">Sem dados de projetos disponíveis</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Projects Table -->
+        <div class="admin-table-card">
+            <div class="admin-table-header">
+                <h3 class="table-title">Projetos Recentes</h3>
+                <a href="{{ url_for('admin.projects') }}" class="btn btn-outline btn-sm">Ver todos</a>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Projeto</th>
+                            <th>Usuário</th>
+                            <th>Fase</th>
+                            <th>Criado em</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if stats and stats.recent_projects %}
+                            {% for project in stats.recent_projects %}
+                                <tr>
+                                    <td class="td-project">{{ project.name }}</td>
+                                    <td class="td-user">{{ project.owner.username if project.owner else '—' }}</td>
+                                    <td>
+                                        <span class="phase-badge phase-{{ project.current_phase }}">
+                                            {% if project.current_phase == 'discovery' %}🔍 Descobrir
+                                            {% elif project.current_phase == 'definition' %}📐 Definir
+                                            {% elif project.current_phase == 'development' %}⚙️ Desenvolver
+                                            {% elif project.current_phase == 'delivery' %}🚀 Entregar
+                                            {% else %}{{ project.current_phase }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="td-date">{{ project.created_at.strftime('%d/%m/%Y %H:%M') if project.created_at else '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="td-empty">Nenhum projeto encontrado</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // User Growth Chart
+    const growthCtx = document.getElementById('userGrowthChart');
+    if (growthCtx && typeof Chart !== 'undefined') {
+        const growthData = {{ stats.user_growth|tojson if stats and stats.user_growth else '[]' }};
+        if (growthData.length > 0) {
+            document.getElementById('userGrowthPlaceholder').style.display = 'none';
+            new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: growthData.map(function(d) { return d.month; }),
+                    datasets: [{
+                        label: 'Usuários',
+                        data: growthData.map(function(d) { return d.count; }),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#1e293b',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Plan Distribution Chart
+    const planCtx = document.getElementById('planDistributionChart');
+    if (planCtx && typeof Chart !== 'undefined') {
+        const free = {{ stats.free_users if stats else 0 }};
+        const premium = {{ stats.premium_users if stats else 0 }};
+        if (free + premium > 0) {
+            document.getElementById('planDistributionPlaceholder').style.display = 'none';
+            new Chart(planCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Grátis', 'Premium'],
+                    datasets: [{
+                        data: [free, premium],
+                        backgroundColor: ['#6366f1', '#22d3ee'],
+                        borderColor: ['#0f172a', '#0f172a'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#f1f5f9',
+                                padding: 16,
+                                font: { size: 13 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Projects by Phase Chart
+    const phaseCtx = document.getElementById('projectsByPhaseChart');
+    if (phaseCtx && typeof Chart !== 'undefined') {
+        const phaseData = {{ stats.projects_by_phase|tojson if stats and stats.projects_by_phase else '{}' }};
+        const keys = Object.keys(phaseData);
+        if (keys.length > 0) {
+            document.getElementById('projectsByPhasePlaceholder').style.display = 'none';
+            const labels = {
+                'discovery': 'Descobrir',
+                'definition': 'Definir',
+                'development': 'Desenvolver',
+                'delivery': 'Entregar'
+            };
+            new Chart(phaseCtx, {
+                type: 'bar',
+                data: {
+                    labels: keys.map(function(k) { return labels[k] || k; }),
+                    datasets: [{
+                        label: 'Projetos',
+                        data: keys.map(function(k) { return phaseData[k]; }),
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(34, 211, 238, 0.8)',
+                            'rgba(52, 211, 153, 0.8)'
+                        ],
+                        borderColor: [
+                            '#6366f1', '#8b5cf6', '#22d3ee', '#34d399'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

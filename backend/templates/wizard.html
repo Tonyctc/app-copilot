@@ -1,0 +1,785 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Assistente de Criação{% endblock %}
+
+{% block content %}
+<section class="wizard-section">
+    <div class="container">
+        <!-- Wizard Header -->
+        <div class="wizard-header">
+            <h1 class="wizard-title">Assistente de Criação</h1>
+            <p class="wizard-subtitle">Metodologia Double Diamond — {{ project.name if project else 'Novo Projeto' }}</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="wizard-progress-bar">
+            <div class="progress-track">
+                <div class="progress-fill-wizard" id="progressFill" style="width: {{ wizard_progress if wizard_progress else 0 }}%;"></div>
+            </div>
+            <span class="progress-percentage" id="progressPercentage">{{ wizard_progress if wizard_progress else 0 }}%</span>
+        </div>
+
+        <!-- Phase Stepper -->
+        <div class="phase-stepper" id="phaseStepper">
+            <div class="step {% if project.current_phase in ['discovery','definition','development','delivery'] %}completed{% elif project.current_phase == 'discovery' %}active{% endif %}" data-phase="discovery">
+                <div class="step-circle">
+                    <span class="step-number">1</span>
+                    <span class="step-check">✓</span>
+                </div>
+                <span class="step-label">Descobrir</span>
+            </div>
+            <div class="step-connector {% if project.current_phase in ['definition','development','delivery'] %}completed{% endif %}"></div>
+            <div class="step {% if project.current_phase in ['definition','development','delivery'] %}completed{% elif project.current_phase == 'definition' %}active{% endif %}" data-phase="definition">
+                <div class="step-circle">
+                    <span class="step-number">2</span>
+                    <span class="step-check">✓</span>
+                </div>
+                <span class="step-label">Definir</span>
+            </div>
+            <div class="step-connector {% if project.current_phase in ['development','delivery'] %}completed{% endif %}"></div>
+            <div class="step {% if project.current_phase in ['development','delivery'] %}completed{% elif project.current_phase == 'development' %}active{% endif %}" data-phase="development">
+                <div class="step-circle">
+                    <span class="step-number">3</span>
+                    <span class="step-check">✓</span>
+                </div>
+                <span class="step-label">Desenvolver</span>
+            </div>
+            <div class="step-connector {% if project.current_phase == 'delivery' %}completed{% endif %}"></div>
+            <div class="step {% if project.current_phase == 'delivery' %}completed active{% endif %}" data-phase="delivery">
+                <div class="step-circle">
+                    <span class="step-number">4</span>
+                    <span class="step-check">✓</span>
+                </div>
+                <span class="step-label">Entregar</span>
+            </div>
+        </div>
+
+        <!-- CSRF Token for AJAX -->
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <!-- Phase 1: Descobrir / Discovery -->
+        <div class="phase-panel {% if project.current_phase == 'discovery' or not project.current_phase %}active{% endif %}" id="phaseDiscovery" data-phase="discovery">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">🔍</div>
+                <div>
+                    <h2 class="phase-panel-title">Fase 1: Descobrir</h2>
+                    <p class="phase-panel-subtitle">Entenda o problema, identifique as dores e conheça seu público-alvo</p>
+                </div>
+            </div>
+
+            {% if project.discovery_data and project.discovery_data|tojson %}
+            <div class="previous-answers">
+                <button type="button" class="btn-toggle-answers" onclick="toggleAnswers('prevDiscovery')">
+                    <span>▼</span> Ver respostas anteriores
+                </button>
+                <div class="previous-answers-content" id="prevDiscovery" style="display:none;">
+                    <div class="answers-display">
+                        {% if project.discovery_data %}
+                            {% set dd = project.discovery_data %}
+                            <div class="answer-item">
+                                <strong>Nome Provisório do App:</strong>
+                                <p>{{ dd.app_name if dd.app_name else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Qual o objetivo principal?</strong>
+                                <p>{{ dd.main_goal if dd.main_goal else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Quais dores ele resolve?</strong>
+                                <p>{{ dd.pain_points if dd.pain_points else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Público-alvo principal:</strong>
+                                <p>{{ dd.target_audience if dd.target_audience else '—' }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form id="formDiscovery" class="phase-form" data-phase="discovery" data-save-url="{{ url_for('project.save_discovery', project_id=project.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="text"
+                            name="app_name"
+                            id="app_name"
+                            class="form-input"
+                            placeholder=" "
+                            value="{{ project.discovery_data.app_name if project.discovery_data and project.discovery_data.app_name else '' }}"
+                            required
+                        >
+                        <label for="app_name" class="floating-label">Nome Provisório do App</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="main_goal"
+                            id="main_goal"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="4"
+                            required
+                        >{{ project.discovery_data.main_goal if project.discovery_data and project.discovery_data.main_goal else '' }}</textarea>
+                        <label for="main_goal" class="floating-label">Qual o objetivo principal?</label>
+                    </div>
+                    <p class="field-hint">Descreva claramente o propósito central do aplicativo</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="pain_points"
+                            id="pain_points"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="4"
+                            required
+                        >{{ project.discovery_data.pain_points if project.discovery_data and project.discovery_data.pain_points else '' }}</textarea>
+                        <label for="pain_points" class="floating-label">Quais dores ele resolve?</label>
+                    </div>
+                    <p class="field-hint">Liste os problemas que seu aplicativo vai solucionar</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <input
+                            type="text"
+                            name="target_audience"
+                            id="target_audience"
+                            class="form-input"
+                            placeholder=" "
+                            value="{{ project.discovery_data.target_audience if project.discovery_data and project.discovery_data.target_audience else '' }}"
+                            required
+                        >
+                        <label for="target_audience" class="floating-label">Público-alvo principal</label>
+                    </div>
+                </div>
+
+                <div class="phase-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg btn-save">
+                        <span class="btn-text">Salvar e Continuar</span>
+                        <span class="btn-spinner" style="display:none;">⟳</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Phase 2: Definir / Definition -->
+        <div class="phase-panel {% if project.current_phase == 'definition' %}active{% endif %}" id="phaseDefinition" data-phase="definition" style="{% if project.current_phase not in ['definition','development','delivery'] %}display:none;{% endif %}">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">📐</div>
+                <div>
+                    <h2 class="phase-panel-title">Fase 2: Definir</h2>
+                    <p class="phase-panel-subtitle">Estruture os requisitos funcionais e não funcionais do seu aplicativo</p>
+                </div>
+            </div>
+
+            {% if project.definition_data and project.definition_data|tojson %}
+            <div class="previous-answers">
+                <button type="button" class="btn-toggle-answers" onclick="toggleAnswers('prevDefinition')">
+                    <span>▼</span> Ver respostas anteriores
+                </button>
+                <div class="previous-answers-content" id="prevDefinition" style="display:none;">
+                    <div class="answers-display">
+                        {% if project.definition_data %}
+                            {% set dd = project.definition_data %}
+                            <div class="answer-item">
+                                <strong>Requisitos Funcionais:</strong>
+                                <p>{{ dd.functional_requirements if dd.functional_requirements else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Requisitos Não Funcionais:</strong>
+                                <p>{{ dd.non_functional_requirements if dd.non_functional_requirements else '—' }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form id="formDefinition" class="phase-form" data-phase="definition" data-save-url="{{ url_for('project.save_definition', project_id=project.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="functional_requirements"
+                            id="functional_requirements"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="6"
+                            required
+                        >{{ project.definition_data.functional_requirements if project.definition_data and project.definition_data.functional_requirements else '' }}</textarea>
+                        <label for="functional_requirements" class="floating-label">Requisitos Funcionais</label>
+                    </div>
+                    <p class="field-hint">O que o app faz? Liste em bullet points (ex: • Login com e-mail • Notificações push)</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="non_functional_requirements"
+                            id="non_functional_requirements"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="6"
+                            required
+                        >{{ project.definition_data.non_functional_requirements if project.definition_data and project.definition_data.non_functional_requirements else '' }}</textarea>
+                        <label for="non_functional_requirements" class="floating-label">Requisitos Não Funcionais</label>
+                    </div>
+                    <p class="field-hint">Segurança, performance, escalabilidade, usabilidade...</p>
+                </div>
+
+                <div class="phase-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg btn-save">
+                        <span class="btn-text">Salvar e Continuar</span>
+                        <span class="btn-spinner" style="display:none;">⟳</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Phase 3: Desenvolver / Development -->
+        <div class="phase-panel {% if project.current_phase == 'development' %}active{% endif %}" id="phaseDevelopment" data-phase="development" style="{% if project.current_phase not in ['development','delivery'] %}display:none;{% endif %}">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">⚙️</div>
+                <div>
+                    <h2 class="phase-panel-title">Fase 3: Desenvolver</h2>
+                    <p class="phase-panel-subtitle">Defina tecnologias, fluxos, regras de negócio e entidades do banco</p>
+                </div>
+            </div>
+
+            {% if project.development_data and project.development_data|tojson %}
+            <div class="previous-answers">
+                <button type="button" class="btn-toggle-answers" onclick="toggleAnswers('prevDevelopment')">
+                    <span>▼</span> Ver respostas anteriores
+                </button>
+                <div class="previous-answers-content" id="prevDevelopment" style="display:none;">
+                    <div class="answers-display">
+                        {% if project.development_data %}
+                            {% set dd = project.development_data %}
+                            <div class="answer-item">
+                                <strong>Tecnologias Frontend:</strong>
+                                <p>{{ dd.frontend_tech if dd.frontend_tech else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Estilo Visual/UX:</strong>
+                                <p>{{ dd.visual_style if dd.visual_style else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Fluxo de Telas:</strong>
+                                <p>{{ dd.screen_flow if dd.screen_flow else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Tecnologias Backend:</strong>
+                                <p>{{ dd.backend_tech if dd.backend_tech else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Regras de Negócio Essenciais:</strong>
+                                <p>{{ dd.business_rules if dd.business_rules else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Entidades do Banco de Dados:</strong>
+                                <p>{{ dd.database_entities if dd.database_entities else '—' }}</p>
+                            </div>
+                            <div class="answer-item">
+                                <strong>Atributos e Relacionamentos:</strong>
+                                <p>{{ dd.attributes_relationships if dd.attributes_relationships else '—' }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form id="formDevelopment" class="phase-form" data-phase="development" data-save-url="{{ url_for('project.save_development', project_id=project.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <div class="floating-label-group">
+                            <input
+                                type="text"
+                                name="frontend_tech"
+                                id="frontend_tech"
+                                class="form-input"
+                                placeholder=" "
+                                value="{{ project.development_data.frontend_tech if project.development_data and project.development_data.frontend_tech else '' }}"
+                                required
+                            >
+                            <label for="frontend_tech" class="floating-label">Tecnologias Frontend</label>
+                        </div>
+                        <p class="field-hint">Ex: React, Tailwind, Vue.js...</p>
+                    </div>
+                    <div class="form-group form-group-half">
+                        <div class="floating-label-group">
+                            <input
+                                type="text"
+                                name="backend_tech"
+                                id="backend_tech"
+                                class="form-input"
+                                placeholder=" "
+                                value="{{ project.development_data.backend_tech if project.development_data and project.development_data.backend_tech else '' }}"
+                                required
+                            >
+                            <label for="backend_tech" class="floating-label">Tecnologias Backend</label>
+                        </div>
+                        <p class="field-hint">Ex: Node.js, Python, PostgreSQL...</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="visual_style"
+                            id="visual_style"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="4"
+                            required
+                        >{{ project.development_data.visual_style if project.development_data and project.development_data.visual_style else '' }}</textarea>
+                        <label for="visual_style" class="floating-label">Estilo Visual / UX</label>
+                    </div>
+                    <p class="field-hint">Descreva o estilo visual, paleta de cores, tipografia e experiência do usuário</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="screen_flow"
+                            id="screen_flow"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="4"
+                            required
+                        >{{ project.development_data.screen_flow if project.development_data and project.development_data.screen_flow else '' }}</textarea>
+                        <label for="screen_flow" class="floating-label">Fluxo de Telas</label>
+                    </div>
+                    <p class="field-hint">Descreva o fluxo de navegação entre as telas do aplicativo</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="floating-label-group">
+                        <textarea
+                            name="business_rules"
+                            id="business_rules"
+                            class="form-input form-textarea"
+                            placeholder=" "
+                            rows="4"
+                            required
+                        >{{ project.development_data.business_rules if project.development_data and project.development_data.business_rules else '' }}</textarea>
+                        <label for="business_rules" class="floating-label">Regras de Negócio Essenciais</label>
+                    </div>
+                    <p class="field-hint">Quais são as regras fundamentais que o app deve seguir?</p>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <div class="floating-label-group">
+                            <textarea
+                                name="database_entities"
+                                id="database_entities"
+                                class="form-input form-textarea"
+                                placeholder=" "
+                                rows="4"
+                                required
+                            >{{ project.development_data.database_entities if project.development_data and project.development_data.database_entities else '' }}</textarea>
+                            <label for="database_entities" class="floating-label">Entidades do Banco de Dados</label>
+                        </div>
+                        <p class="field-hint">Ex: Usuário, Produto, Pedido...</p>
+                    </div>
+                    <div class="form-group form-group-half">
+                        <div class="floating-label-group">
+                            <textarea
+                                name="attributes_relationships"
+                                id="attributes_relationships"
+                                class="form-input form-textarea"
+                                placeholder=" "
+                                rows="4"
+                                required
+                            >{{ project.development_data.attributes_relationships if project.development_data and project.development_data.attributes_relationships else '' }}</textarea>
+                            <label for="attributes_relationships" class="floating-label">Atributos e Relacionamentos</label>
+                        </div>
+                        <p class="field-hint">Ex: Usuário: id, nome, email (1:N com Pedido)</p>
+                    </div>
+                </div>
+
+                <div class="phase-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg btn-save">
+                        <span class="btn-text">Salvar e Continuar</span>
+                        <span class="btn-spinner" style="display:none;">⟳</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Phase 4: Entregar / Delivery -->
+        <div class="phase-panel {% if project.current_phase == 'delivery' %}active{% endif %}" id="phaseDelivery" data-phase="delivery" style="{% if project.current_phase != 'delivery' %}display:none;{% endif %}">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">🚀</div>
+                <div>
+                    <h2 class="phase-panel-title">Fase 4: Entregar</h2>
+                    <p class="phase-panel-subtitle">Revise todos os dados do projeto e exporte o bundle completo</p>
+                </div>
+            </div>
+
+            <div class="delivery-summary">
+                <h3 class="summary-title">Resumo Final do Projeto</h3>
+
+                <div class="summary-section">
+                    <h4 class="summary-section-title">🔍 Fase 1 — Descobrir</h4>
+                    <div class="summary-data">
+                        <div class="summary-item">
+                            <span class="summary-label">Nome do App:</span>
+                            <span class="summary-value">{{ project.discovery_data.app_name if project.discovery_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Objetivo Principal:</span>
+                            <span class="summary-value">{{ project.discovery_data.main_goal if project.discovery_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Dores Resolvidas:</span>
+                            <span class="summary-value">{{ project.discovery_data.pain_points if project.discovery_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Público-alvo:</span>
+                            <span class="summary-value">{{ project.discovery_data.target_audience if project.discovery_data else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h4 class="summary-section-title">📐 Fase 2 — Definir</h4>
+                    <div class="summary-data">
+                        <div class="summary-item">
+                            <span class="summary-label">Requisitos Funcionais:</span>
+                            <span class="summary-value">{{ project.definition_data.functional_requirements if project.definition_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Requisitos Não Funcionais:</span>
+                            <span class="summary-value">{{ project.definition_data.non_functional_requirements if project.definition_data else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h4 class="summary-section-title">⚙️ Fase 3 — Desenvolver</h4>
+                    <div class="summary-data">
+                        <div class="summary-item">
+                            <span class="summary-label">Tecnologias Frontend:</span>
+                            <span class="summary-value">{{ project.development_data.frontend_tech if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Tecnologias Backend:</span>
+                            <span class="summary-value">{{ project.development_data.backend_tech if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Estilo Visual / UX:</span>
+                            <span class="summary-value">{{ project.development_data.visual_style if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Fluxo de Telas:</span>
+                            <span class="summary-value">{{ project.development_data.screen_flow if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Regras de Negócio:</span>
+                            <span class="summary-value">{{ project.development_data.business_rules if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Entidades do Banco:</span>
+                            <span class="summary-value">{{ project.development_data.database_entities if project.development_data else '—' }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Atributos e Relacionamentos:</span>
+                            <span class="summary-value">{{ project.development_data.attributes_relationships if project.development_data else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formDelivery" class="phase-form" data-phase="delivery" data-save-url="{{ url_for('project.save_delivery', project_id=project.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="form-group">
+                        <div class="floating-label-group">
+                            <textarea
+                                name="final_summary"
+                                id="final_summary"
+                                class="form-input form-textarea"
+                                placeholder=" "
+                                rows="6"
+                                readonly
+                            >{% if project.discovery_data %}Nome do App: {{ project.discovery_data.app_name }}
+
+OBJETIVO: {{ project.discovery_data.main_goal }}
+
+PÚBLICO-ALVO: {{ project.discovery_data.target_audience }}
+
+TECNOLOGIAS: Frontend: {{ project.development_data.frontend_tech if project.development_data else '—' }} | Backend: {{ project.development_data.backend_tech if project.development_data else '—' }}
+
+REQUISITOS FUNCIONAIS: {{ project.definition_data.functional_requirements if project.definition_data else '—' }}
+
+REGRAS DE NEGÓCIO: {{ project.development_data.business_rules if project.development_data else '—' }}{% endif %}</textarea>
+                            <label for="final_summary" class="floating-label">Resumo Final do Projeto</label>
+                        </div>
+                    </div>
+
+                    <div class="delivery-checklist">
+                        <h4 class="checklist-title">✓ Checklist de Entrega</h4>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input delivery-check" id="checkDiscovery">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Fase Descobrir está completa</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input delivery-check" id="checkDefinition">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Fase Definir está completa</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input delivery-check" id="checkDevelopment">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Fase Desenvolver está completa</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input delivery-check" id="checkReview">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Revisei todas as informações acima</span>
+                        </label>
+                    </div>
+
+                    <div class="phase-form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg btn-save" id="btnDeliverySubmit">
+                            <span class="btn-text">Confirmar e Gerar Bundle</span>
+                            <span class="btn-spinner" style="display:none;">⟳</span>
+                        </button>
+                        <a href="{{ url_for('project.export_project', project_id=project.id) }}" class="btn btn-outline btn-lg" id="btnExport" style="{% if project.current_phase != 'delivery' %}display:none;{% endif %}">
+                            📦 Exportar Projeto
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if project.completed %}
+        <div class="phase-panel active build-prompt-section">
+            <div class="phase-panel-header">
+                <div class="phase-panel-icon">🤖</div>
+                <div>
+                    <h2 class="phase-panel-title">Prompt de Construção</h2>
+                    <p class="phase-panel-subtitle">
+                        Gere um prompt completo para agentes de IA codificadores construírem seu projeto
+                    </p>
+                </div>
+            </div>
+
+            <div class="build-prompt-card">
+                <p class="build-prompt-description">
+                    O Prompt de Construção consolida toda a especificação do seu projeto
+                    (OKF Bundle) e utiliza inteligência artificial para gerar instruções
+                    detalhadas para agentes de código como <strong>Hermes Agent</strong>,
+                    <strong>Claude Code</strong> ou <strong>Codex</strong>.
+                </p>
+
+                <div class="prompt-features">
+                    <div class="prompt-feature">
+                        <span class="feature-icon">📋</span>
+                        <span>Especificação técnica completa</span>
+                    </div>
+                    <div class="prompt-feature">
+                        <span class="feature-icon">🧩</span>
+                        <span>Plano de implementação com subagentes</span>
+                    </div>
+                    <div class="prompt-feature">
+                        <span class="feature-icon">✅</span>
+                        <span>Instruções TDD e boas práticas</span>
+                    </div>
+                    <div class="prompt-feature">
+                        <span class="feature-icon">🚀</span>
+                        <span>Critérios de aceite e validação</span>
+                    </div>
+                </div>
+
+                <div class="phase-form-actions">
+                    <a href="{{ url_for('project.generate_build_prompt', project_id=project.id) }}" class="btn btn-accent btn-lg">
+                        🤖 Gerar Prompt de Construção
+                    </a>
+                    <a href="{{ url_for('project.view_build_prompt', project_id=project.id) }}" class="btn btn-outline btn-lg">
+                        📄 Ver Prompt Gerado
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/wizard.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle previous answers
+    window.toggleAnswers = function(id) {
+        const el = document.getElementById(id);
+        const btn = el.previousElementSibling;
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            btn.querySelector('span').textContent = '▲';
+        } else {
+            el.style.display = 'none';
+            btn.querySelector('span').textContent = '▼';
+        }
+    };
+
+    // Form submission via AJAX
+    const forms = document.querySelectorAll('.phase-form');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = this.querySelector('.btn-save');
+            const btnText = btn.querySelector('.btn-text');
+            const btnSpinner = btn.querySelector('.btn-spinner');
+            const url = this.dataset.saveUrl;
+            const phase = this.dataset.phase;
+
+            // Validate
+            const requiredFields = this.querySelectorAll('[required]');
+            let valid = true;
+            requiredFields.forEach(function(field) {
+                if (!field.value.trim()) {
+                    field.classList.add('input-error');
+                    valid = false;
+                } else {
+                    field.classList.remove('input-error');
+                }
+            });
+
+            if (!valid) {
+                showFlash('Preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            // For delivery phase, check checklist
+            if (phase === 'delivery') {
+                const checks = document.querySelectorAll('.delivery-check');
+                let allChecked = true;
+                checks.forEach(function(c) {
+                    if (!c.checked) allChecked = false;
+                });
+                if (!allChecked) {
+                    showFlash('Marque todos os itens do checklist para confirmar a entrega.', 'warning');
+                    return;
+                }
+            }
+
+            // Show loading
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline';
+
+            // Gather form data
+            const formData = new FormData(this);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { status: response.status, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.status === 200 && result.data.success) {
+                    showFlash(result.data.message || 'Fase salva com sucesso!', 'success');
+                    // Advance to next phase
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    showFlash(result.data.message || 'Erro ao salvar. Tente novamente.', 'error');
+                    btn.disabled = false;
+                    btnText.style.display = 'inline';
+                    btnSpinner.style.display = 'none';
+                }
+            })
+            .catch(function(error) {
+                showFlash('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            });
+        });
+    });
+
+    // Delivery checklist enables submit
+    const deliveryChecks = document.querySelectorAll('.delivery-check');
+    const deliveryBtn = document.getElementById('btnDeliverySubmit');
+    if (deliveryChecks.length > 0 && deliveryBtn) {
+        deliveryChecks.forEach(function(check) {
+            check.addEventListener('change', function() {
+                let allChecked = true;
+                deliveryChecks.forEach(function(c) {
+                    if (!c.checked) allChecked = false;
+                });
+                deliveryBtn.disabled = !allChecked;
+            });
+        });
+    }
+
+    // Flash message helper
+    function showFlash(message, category) {
+        const container = document.getElementById('flashContainer');
+        if (!container) return;
+
+        const icons = {
+            success: '✓',
+            error: '✕',
+            warning: '⚠',
+            info: 'ℹ'
+        };
+
+        const div = document.createElement('div');
+        div.className = 'flash-message flash-' + category;
+        div.setAttribute('role', 'alert');
+        div.innerHTML = '<div class="flash-content">' +
+            '<span class="flash-icon">' + (icons[category] || 'ℹ') + '</span>' +
+            '<span class="flash-text">' + message + '</span>' +
+            '</div>' +
+            '<button class="flash-close" onclick="this.parentElement.remove()">×</button>';
+
+        container.appendChild(div);
+
+        setTimeout(function() {
+            div.style.opacity = '0';
+            div.style.transform = 'translateX(100%)';
+            setTimeout(function() {
+                if (div.parentElement) {
+                    div.remove();
+                }
+            }, 400);
+        }, 5000);
+    }
+
+    // Auto-scroll to active phase
+    const activePanel = document.querySelector('.phase-panel.active');
+    if (activePanel) {
+        setTimeout(function() {
+            activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+    }
+});
+</script>
+{% endblock %}

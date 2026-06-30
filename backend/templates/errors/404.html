@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Página não encontrada{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="error-container">
+        <div class="error-code">404</div>
+
+        <div class="error-illustration">
+            <span class="error-icon">🔍</span>
+        </div>
+
+        <h1 class="error-title">Página não encontrada</h1>
+
+        <p class="error-message">
+            Verifique se o endereço está correto ou volte ao início.
+        </p>
+
+        <div class="error-actions">
+            <a href="{{ url_for('auth.index') }}" class="btn btn-primary btn-lg">
+                ← Voltar ao Início
+            </a>
+        </div>
+
+        <div class="error-help">
+            <p>Precisa de ajuda? <a href="mailto:suporte@appcopilot.com" class="auth-link">suporte@appcopilot.com</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

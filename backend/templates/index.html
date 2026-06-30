@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}AppCopilot — Crie seu Próximo Aplicativo{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-particles" aria-hidden="true">
+        <span class="particle" style="top:15%;left:10%;animation-delay:0s;"></span>
+        <span class="particle" style="top:25%;left:85%;animation-delay:0.5s;"></span>
+        <span class="particle" style="top:60%;left:20%;animation-delay:1s;"></span>
+        <span class="particle" style="top:70%;left:75%;animation-delay:1.5s;"></span>
+        <span class="particle" style="top:40%;left:50%;animation-delay:2s;"></span>
+        <span class="particle" style="top:80%;left:35%;animation-delay:2.5s;"></span>
+    </div>
+    <div class="hero-content">
+        <div class="hero-badge">🔥 Metodologia Double Diamond</div>
+        <h1 class="hero-title">Crie seu <span class="gradient-text">Próximo Aplicativo</span> com um Copiloto Inteligente</h1>
+        <p class="hero-subtitle">
+            Transforme suas ideias em projetos completos seguindo as 4 fases do Double Diamond.
+            Do <strong>Descobrir</strong> ao <strong>Entregar</strong>, nós guiamos você em cada etapa.
+        </p>
+        <div class="hero-actions">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('project.dashboard') }}" class="btn btn-primary btn-lg">Ir para o Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Começar Agora</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">Já tenho conta</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Phases Section -->
+<section class="section phases-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">As 4 Fases do <span class="gradient-text">Double Diamond</span></h2>
+            <p class="section-subtitle">Um processo estruturado para transformar ideias em soluções digitais completas</p>
+        </div>
+
+        <div class="phases-grid">
+            <div class="phase-card phase-1">
+                <div class="phase-number">01</div>
+                <div class="phase-icon">🔍</div>
+                <h3 class="phase-title">Descobrir</h3>
+                <p class="phase-desc">Entenda o problema, identifique dores e mapeie o público-alvo. A base de tudo começa aqui.</p>
+                <ul class="phase-items">
+                    <li>Definição do objetivo principal</li>
+                    <li>Identificação de problemas</li>
+                    <li>Análise do público-alvo</li>
+                </ul>
+            </div>
+
+            <div class="phase-card phase-2">
+                <div class="phase-number">02</div>
+                <div class="phase-icon">📐</div>
+                <h3 class="phase-title">Definir</h3>
+                <p class="phase-desc">Estruture os requisitos funcionais e não funcionais do seu aplicativo.</p>
+                <ul class="phase-items">
+                    <li>Requisitos funcionais</li>
+                    <li>Requisitos não funcionais</li>
+                    <li>Escopo do projeto</li>
+                </ul>
+            </div>
+
+            <div class="phase-card phase-3">
+                <div class="phase-number">03</div>
+                <div class="phase-icon">⚙️</div>
+                <h3 class="phase-title">Desenvolver</h3>
+                <p class="phase-desc">Defina tecnologias, fluxos de telas, regras de negócio e entidades do banco.</p>
+                <ul class="phase-items">
+                    <li>Tecnologias Frontend e Backend</li>
+                    <li>Fluxo de telas</li>
+                    <li>Regras de negócio e entidades</li>
+                </ul>
+            </div>
+
+            <div class="phase-card phase-4">
+                <div class="phase-number">04</div>
+                <div class="phase-icon">🚀</div>
+                <h3 class="phase-title">Entregar</h3>
+                <p class="phase-desc">Revise tudo, confirme e exporte seu projeto completo em um bundle OKF.</p>
+                <ul class="phase-items">
+                    <li>Resumo final do projeto</li>
+                    <li>Geração de bundle</li>
+                    <li>Exportação completa</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section features-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Por que usar o <span class="gradient-text">AppCopilot</span>?</h2>
+            <p class="section-subtitle">Tudo que você precisa para criar aplicativos com método e qualidade</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">🎯</span>
+                </div>
+                <h3 class="feature-title">Metodologia Validada</h3>
+                <p class="feature-desc">Baseado no Double Diamond, um dos processos de design mais consagrados do mundo.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">📋</span>
+                </div>
+                <h3 class="feature-title">Estrutura Completa</h3>
+                <p class="feature-desc">Do conceito à entrega, todas as etapas cobertas com formulários inteligentes.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">📦</span>
+                </div>
+                <h3 class="feature-title">Exportação Prática</h3>
+                <p class="feature-desc">Gere bundles OKF prontos para implementação ou apresentação.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">🔒</span>
+                </div>
+                <h3 class="feature-title">100% Gratuito</h3>
+                <p class="feature-desc">Comece de graça e evolua para o plano Premium quando precisar de mais recursos.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">👥</span>
+                </div>
+                <h3 class="feature-title">Foco no Usuário</h3>
+                <p class="feature-desc">Cada etapa pensada para colocar as necessidades do usuário no centro.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <span class="feature-icon">📊</span>
+                </div>
+                <h3 class="feature-title">Progresso Visível</h3>
+                <p class="feature-desc">Acompanhe o avanço do seu projeto em tempo real com indicadores claros.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <h2 class="cta-title">Pronto para transformar sua ideia em um aplicativo?</h2>
+            <p class="cta-text">Não importa se você é empreendedor, estudante ou profissional de TI — o AppCopilot está aqui para ajudar.</p>
+            <div class="cta-actions">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('project.dashboard') }}" class="btn btn-primary btn-lg">Ir para o Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Começar Agora — é Grátis</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="section pricing-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Planos <span class="gradient-text">Simples</span> e <span class="gradient-text">Flexíveis</span></h2>
+            <p class="section-subtitle">Escolha o plano ideal para o seu momento</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card pricing-free">
+                <div class="pricing-header">
+                    <h3 class="pricing-name">Grátis</h3>
+                    <div class="pricing-price">
+                        <span class="price-value">R$ 0</span>
+                        <span class="price-period">/mês</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li>✓ Projetos ilimitados</li>
+                    <li>✓ Todas as 4 fases do Double Diamond</li>
+                    <li>✓ Exportação em bundle OKF</li>
+                    <li>✓ Suporte via comunidade</li>
+                    <li class="pricing-feature-disabled">✕ Analytics avançados</li>
+                    <li class="pricing-feature-disabled">✕ Exportação em múltiplos formatos</li>
+                    <li class="pricing-feature-disabled">✕ Suporte prioritário</li>
+                </ul>
+                <div class="pricing-action">
+                    {% if current_user.is_authenticated and current_user.plan == 'free' %}
+                        <a href="{{ url_for('auth.upgrade') }}" class="btn btn-outline btn-block">Fazer Upgrade</a>
+                    {% elif current_user.is_authenticated %}
+                        <span class="btn btn-disabled btn-block">Plano Atual</span>
+                    {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-block">Começar Grátis</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="pricing-card pricing-premium featured">
+                <div class="pricing-badge">Mais Popular</div>
+                <div class="pricing-header">
+                    <h3 class="pricing-name">Premium</h3>
+                    <div class="pricing-price">
+                        <span class="price-value">R$ 29,90</span>
+                        <span class="price-period">/mês</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li>✓ Tudo do plano Grátis</li>
+                    <li>✓ Analytics avançados</li>
+                    <li>✓ Exportação em múltiplos formatos</li>
+                    <li>✓ Suporte prioritário 24/7</li>
+                    <li>✓ Temas personalizados</li>
+                    <li>✓ API de integração</li>
+                    <li>✓ Histórico completo de versões</li>
+                </ul>
+                <div class="pricing-action">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.plan == 'premium' %}
+                            <span class="btn btn-primary btn-block">Plano Atual</span>
+                        {% else %}
+                            <a href="{{ url_for('auth.upgrade') }}" class="btn btn-primary btn-block">Fazer Upgrade</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Começar Grátis</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

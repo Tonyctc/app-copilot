@@ -20,7 +20,7 @@
 
         <!-- Phase Stepper -->
         <div class="phase-stepper" id="phaseStepper">
-            <div class="step {% if project.current_phase >= 1 %}completed{% elif project.current_phase == 0 %}active{% endif %}" data-phase="discovery">
+            <div class="phase-step {% if project.current_phase >= 1 %}completed{% elif project.current_phase == 0 %}active{% endif %}" data-phase="discovery">
                 <div class="step-circle">
                     <span class="step-number">1</span>
                     <span class="step-check">✓</span>
@@ -28,7 +28,7 @@
                 <span class="step-label">Descobrir</span>
             </div>
             <div class="step-connector {% if project.current_phase >= 2 %}completed{% endif %}"></div>
-            <div class="step {% if project.current_phase >= 2 %}completed{% elif project.current_phase == 1 %}active{% endif %}" data-phase="definition">
+            <div class="phase-step {% if project.current_phase >= 2 %}completed{% elif project.current_phase == 1 %}active{% endif %}" data-phase="definition">
                 <div class="step-circle">
                     <span class="step-number">2</span>
                     <span class="step-check">✓</span>
@@ -36,7 +36,7 @@
                 <span class="step-label">Definir</span>
             </div>
             <div class="step-connector {% if project.current_phase >= 3 %}completed{% endif %}"></div>
-            <div class="step {% if project.current_phase >= 3 %}completed{% elif project.current_phase == 2 %}active{% endif %}" data-phase="development">
+            <div class="phase-step {% if project.current_phase >= 3 %}completed{% elif project.current_phase == 2 %}active{% endif %}" data-phase="development">
                 <div class="step-circle">
                     <span class="step-number">3</span>
                     <span class="step-check">✓</span>
@@ -44,7 +44,7 @@
                 <span class="step-label">Desenvolver</span>
             </div>
             <div class="step-connector {% if project.current_phase >= 4 %}completed{% endif %}"></div>
-            <div class="step {% if project.current_phase >= 4 %}completed{% elif project.current_phase == 3 %}active{% endif %}" data-phase="delivery">
+            <div class="phase-step {% if project.current_phase >= 4 %}completed{% elif project.current_phase == 3 %}active{% endif %}" data-phase="delivery">
                 <div class="step-circle">
                     <span class="step-number">4</span>
                     <span class="step-check">✓</span>
@@ -631,9 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Form submission via AJAX
-    const forms = document.querySelectorAll('.phase-form');
-    forms.forEach(function(form) {
+    // Form submission via AJAX (per-form, handles each phase independently)
+    document.querySelectorAll('.phase-form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -643,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = this.dataset.saveUrl;
             const phase = this.dataset.phase;
 
-            // Validate
+            // Validate required fields
             const requiredFields = this.querySelectorAll('[required]');
             let valid = true;
             requiredFields.forEach(function(field) {
@@ -656,7 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (!valid) {
-                showFlash('Preencha todos os campos obrigatórios.', 'error');
+                window.showFlash('Preencha todos os campos obrigatórios.', 'error');
                 return;
             }
 
@@ -664,11 +663,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (phase === 'delivery') {
                 const checks = document.querySelectorAll('.delivery-check');
                 let allChecked = true;
-                checks.forEach(function(c) {
-                    if (!c.checked) allChecked = false;
-                });
+                checks.forEach(function(c) { if (!c.checked) allChecked = false; });
                 if (!allChecked) {
-                    showFlash('Marque todos os itens do checklist para confirmar a entrega.', 'warning');
+                    window.showFlash('Marque todos os itens do checklist para confirmar a entrega.', 'warning');
                     return;
                 }
             }
@@ -678,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnText.style.display = 'none';
             btnSpinner.style.display = 'inline';
 
-            // Gather form data
+            // AJAX submit
             const formData = new FormData(this);
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -690,27 +687,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: formData
             })
-            .then(function(response) {
-                return response.json().then(function(data) {
-                    return { status: response.status, data: data };
-                });
-            })
+            .then(function(response) { return response.json().then(function(data) { return { status: response.status, data: data }; }); })
             .then(function(result) {
                 if (result.status === 200 && result.data.success) {
-                    showFlash(result.data.message || 'Fase salva com sucesso!', 'success');
-                    // Advance to next phase
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 800);
+                    window.showFlash(result.data.message || 'Fase salva com sucesso!', 'success');
+                    setTimeout(function() { window.location.reload(); }, 800);
                 } else {
-                    showFlash(result.data.message || 'Erro ao salvar. Tente novamente.', 'error');
+                    window.showFlash(result.data.message || 'Erro ao salvar. Tente novamente.', 'error');
                     btn.disabled = false;
                     btnText.style.display = 'inline';
                     btnSpinner.style.display = 'none';
                 }
             })
-            .catch(function(error) {
-                showFlash('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+            .catch(function() {
+                window.showFlash('Erro de conexão.', 'error');
                 btn.disabled = false;
                 btnText.style.display = 'inline';
                 btnSpinner.style.display = 'none';
@@ -733,8 +723,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Flash message helper
-    function showFlash(message, category) {
+    // Flash message helper (also used by wizard.js as window.showFlash)
+    window.showFlash = function(message, category) {
         const container = document.getElementById('flashContainer');
         if (!container) return;
 
@@ -765,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 400);
         }, 5000);
-    }
+    };
 
     // Auto-scroll to active phase
     const activePanel = document.querySelector('.phase-panel.active');

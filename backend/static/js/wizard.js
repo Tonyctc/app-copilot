@@ -27,7 +27,7 @@
     prevAnswers: '.previous-answers',
     prevAnswersToggle: '.toggle-answers',
     deliveryChecklist: '.delivery-checklist',
-    wizardForm: '.wizard-form',
+    wizardForm: '.phase-form',
     nextBtn: '.btn-next',
     prevBtn: '.btn-prev',
     saveBtn: '.btn-save',
@@ -88,21 +88,21 @@
       });
     });
 
-    // Save buttons (AJAX)
-    document.querySelectorAll(selectors.saveBtn).forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        submitCurrentPhase('save');
-      });
-    });
+    // Save buttons (AJAX) — DISABLED: handled by inline JS per-form
+    // document.querySelectorAll(selectors.saveBtn).forEach(function (btn) {
+    //   btn.addEventListener('click', function (e) {
+    //     e.preventDefault();
+    //     submitCurrentPhase('save');
+    //   });
+    // });
 
-    // Submit buttons (final)
-    document.querySelectorAll(selectors.submitBtn).forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        submitCurrentPhase('submit');
-      });
-    });
+    // Submit buttons (final) — DISABLED: handled by inline JS per-form
+    // document.querySelectorAll(selectors.submitBtn).forEach(function (btn) {
+    //   btn.addEventListener('click', function (e) {
+    //     e.preventDefault();
+    //     submitCurrentPhase('submit');
+    //   });
+    // });
 
     // Phase step clicks (stepper navigation)
     $.steps.forEach(function (step) {

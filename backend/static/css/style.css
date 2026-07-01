@@ -307,6 +307,79 @@ small {
   background-color: var(--color-primary-light);
 }
 
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: var(--space-6);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.plan-badge.free {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.plan-badge.premium {
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+}
+
+.plan-badge.admin {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
 .navbar-toggle {
   display: none;
   flex-direction: column;
@@ -361,7 +434,8 @@ small {
     transition: all var(--transition-base);
   }
 
-  .navbar-links.open {
+  .navbar-links.open,
+  .navbar-menu.active {
     transform: translateY(0);
     opacity: 1;
     pointer-events: all;
@@ -877,6 +951,24 @@ textarea.form-control {
 
 .btn-block {
   width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  font-weight: 700;
+}
+
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Ripple effect container */
@@ -1716,7 +1808,7 @@ textarea.form-control {
 /* --------------------------------------------------------------------------
    15. Landing Page
    -------------------------------------------------------------------------- */
-.hero-section {
+.hero {
   text-align: center;
   padding: var(--space-16) var(--space-6) var(--space-8);
   background: radial-gradient(
@@ -1726,7 +1818,27 @@ textarea.form-control {
   );
 }
 
-.hero-section h1 {
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero .hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: var(--space-6);
+}
+
+.hero h1,
+.hero .hero-title {
   font-size: 3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -1737,7 +1849,7 @@ textarea.form-control {
   background-clip: text;
 }
 
-.hero-section .hero-subtitle {
+.hero .hero-subtitle {
   font-size: 1.125rem;
   color: var(--color-text-muted);
   max-width: 600px;
@@ -1745,7 +1857,7 @@ textarea.form-control {
   line-height: 1.7;
 }
 
-.hero-section .hero-actions {
+.hero .hero-actions {
   display: flex;
   gap: var(--space-4);
   justify-content: center;

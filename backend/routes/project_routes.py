@@ -96,9 +96,7 @@ def save_discovery(project_id):
         return redirect(url_for('project.dashboard'))
 
     data = _extract_form_data(request, [
-        'title', 'description', 'problem_statement', 'target_audience',
-        'user_needs', 'competitors', 'constraints', 'research_methods',
-        'key_findings', 'stakeholders', 'notes',
+        'app_name', 'main_goal', 'pain_points', 'target_audience',
     ])
     project.set_discovery_data(data)
     if project.current_phase < 1:
@@ -106,6 +104,8 @@ def save_discovery(project_id):
     project.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(success=True, message='Fase de Descoberta salva com sucesso!')
     flash('Fase de Descoberta salva com sucesso!', 'success')
     return redirect(url_for('project.wizard', project_id=project.id))
 
@@ -120,9 +120,7 @@ def save_definition(project_id):
         return redirect(url_for('project.dashboard'))
 
     data = _extract_form_data(request, [
-        'goals', 'success_metrics', 'functional_requirements',
-        'non_functional_requirements', 'user_stories', 'use_cases',
-        'scope', 'risks', 'notes',
+        'functional_requirements', 'non_functional_requirements',
     ])
     project.set_definition_data(data)
     if project.current_phase < 2:
@@ -130,6 +128,8 @@ def save_definition(project_id):
     project.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(success=True, message='Fase de Definição salva com sucesso!')
     flash('Fase de Definição salva com sucesso!', 'success')
     return redirect(url_for('project.wizard', project_id=project.id))
 
@@ -144,8 +144,8 @@ def save_development(project_id):
         return redirect(url_for('project.dashboard'))
 
     data = _extract_form_data(request, [
-        'architecture', 'technologies', 'data_model', 'api_endpoints',
-        'wireframes', 'user_flow', 'prototype_link', 'design_system', 'notes',
+        'frontend_tech', 'backend_tech', 'visual_style', 'screen_flow',
+        'business_rules', 'database_entities', 'attributes_relationships',
     ])
     project.set_development_data(data)
     if project.current_phase < 3:
@@ -153,6 +153,8 @@ def save_development(project_id):
     project.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(success=True, message='Fase de Desenvolvimento salva com sucesso!')
     flash('Fase de Desenvolvimento salva com sucesso!', 'success')
     return redirect(url_for('project.wizard', project_id=project.id))
 
@@ -167,9 +169,7 @@ def save_delivery(project_id):
         return redirect(url_for('project.dashboard'))
 
     data = _extract_form_data(request, [
-        'deployment_plan', 'testing_strategy', 'quality_assurance',
-        'training_plan', 'support_plan', 'maintenance_plan',
-        'budget', 'timeline', 'deliverables', 'notes',
+        'final_summary',
     ])
     project.set_delivery_data(data)
 
@@ -186,6 +186,9 @@ def save_delivery(project_id):
         generator.generate_bundle(project)
     except Exception as e:
         current_app.logger.error(f'OKF generation error: {e}')
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(success=True, message='Projeto concluído! O bundle OKF foi gerado.')
 
     flash(
         'Fase de Entrega salva com sucesso! Projeto concluído! '

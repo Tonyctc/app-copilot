@@ -1255,7 +1255,7 @@ textarea.form-control {
    11. Wizard Panels
    -------------------------------------------------------------------------- */
 .phase-panel {
-  display: none;
+  display: block;
   animation: fade-in 0.4s ease forwards;
 }
 

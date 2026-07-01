@@ -25,7 +25,7 @@ def create_app(config_class=Config) -> Flask:
     app = Flask(
         __name__,
         template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'),
-        static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static'),
+        static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static'),
     )
     app.config.from_object(config_class)
 

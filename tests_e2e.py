@@ -186,13 +186,15 @@ def run_playwright_tests():
                 errors.append(f"TEST 7: {e}")
 
             # ─── TEST 8: Access control ────────────────────────────
-            print("\n[TEST 8] Access Control")
+            print("\\n[TEST 8] Access Control")
             try:
-                # Non-logged-in user should be redirected
-                new_page = context.new_page()
+                # Non-logged-in user should be redirected (use new context to clear cookies)
+                new_ctx = browser.new_context()
+                new_page = new_ctx.new_page()
                 new_page.goto(f"{BASE_URL}/dashboard")
                 assert "/login" in new_page.url or "login" in new_page.url.lower()
                 new_page.close()
+                new_ctx.close()
                 print("  ✓ Unauthenticated users redirected to login")
                 passed += 1
             except Exception as e:

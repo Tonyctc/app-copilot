@@ -198,10 +198,12 @@
                                     <td class="td-user">{{ project.owner.username if project.owner else '—' }}</td>
                                     <td>
                                         <span class="phase-badge phase-{{ project.current_phase }}">
-                                            {% if project.current_phase == 'discovery' %}🔍 Descobrir
-                                            {% elif project.current_phase == 'definition' %}📐 Definir
-                                            {% elif project.current_phase == 'development' %}⚙️ Desenvolver
-                                            {% elif project.current_phase == 'delivery' %}🚀 Entregar
+                                            {% set p = project.current_phase|int %}
+                                            {% if p == 0 %}📝 Nova
+                                            {% elif p == 1 %}🔍 Descobrir
+                                            {% elif p == 2 %}📐 Definir
+                                            {% elif p == 3 %}⚙️ Desenvolver
+                                            {% elif p >= 4 %}🚀 Concluído
                                             {% else %}{{ project.current_phase }}{% endif %}
                                         </span>
                                     </td>

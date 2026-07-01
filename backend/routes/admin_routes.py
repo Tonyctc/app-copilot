@@ -14,7 +14,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 def dashboard():
     """Admin dashboard with high-level platform statistics."""
     stats = _compute_stats()
-    return render_template('admin_dashboard.html', stats=stats)
+    return render_template('admin/dashboard.html', stats=stats)
 
 
 @admin_bp.route('/users')
@@ -26,7 +26,7 @@ def users():
         .order_by(User.created_at.desc())
         .all()
     )
-    return render_template('admin_users.html', users=all_users)
+    return render_template('admin/users.html', users=all_users)
 
 
 @admin_bp.route('/projects')
@@ -38,7 +38,7 @@ def projects():
         .order_by(Project.updated_at.desc())
         .all()
     )
-    return render_template('admin_projects.html', projects=all_projects)
+    return render_template('admin/dashboard.html', stats=_compute_stats())
 
 
 @admin_bp.route('/stats')

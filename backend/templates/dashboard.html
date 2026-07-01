@@ -39,7 +39,7 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-progress">📊</div>
                 <div class="stat-info">
-                    {% set completed = projects|selectattr('current_phase', 'equalto', 'delivery')|list|length if projects else 0 %}
+                    {% set completed = projects|selectattr('completed')|list|length if projects else 0 %}
                     <span class="stat-value">{{ completed }}</span>
                     <span class="stat-label">Concluídos</span>
                 </div>
@@ -71,16 +71,18 @@
                             <div class="project-card-header">
                                 <h3 class="project-name">{{ project.name }}</h3>
                                 <span class="project-phase-badge phase-{{ project.current_phase }}">
-                                    {% if project.current_phase == 'discovery' %}🔍 Descobrir
-                                    {% elif project.current_phase == 'definition' %}📐 Definir
-                                    {% elif project.current_phase == 'development' %}⚙️ Desenvolver
-                                    {% elif project.current_phase == 'delivery' %}🚀 Entregar
+                                    {% set pnum = project.current_phase|int %}
+                                    {% if pnum == 0 %}📝 Nova
+                                    {% elif pnum == 1 %}🔍 Descobrir
+                                    {% elif pnum == 2 %}📐 Definir
+                                    {% elif pnum == 3 %}⚙️ Desenvolver
+                                    {% elif pnum >= 4 %}🚀 Concluído
                                     {% else %}📝 {{ project.current_phase }}
                                     {% endif %}
                                 </span>
                             </div>
                             <div class="project-card-body">
-                                <p class="project-description">{{ project.description[:120] if project.description else 'Sem descrição' }}{% if project.description and project.description|length > 120 %}...{% endif %}</p>
+                                <p class="project-description">{{ project.get_discovery_data().main_goal[:120] if project.get_discovery_data() and project.get_discovery_data().main_goal else 'Sem descrição' }}{% if project.get_discovery_data() and project.get_discovery_data().main_goal and project.get_discovery_data().main_goal|length > 120 %}...{% endif %}</p>
                                 <div class="project-meta">
                                     <span class="project-date">
                                         <span class="meta-icon">📅</span>
@@ -88,21 +90,21 @@
                                     </span>
                                     <span class="project-phase-label">
                                         <span class="meta-icon">📌</span>
-                                        Fase {{ project_phase_number(project.current_phase) if project_phase_number else '—' }}/4
+                                        Fase {{ (pnum if pnum <= 4 else 4) }}/4
                                     </span>
                                 </div>
                                 <div class="project-progress">
                                     <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ project_progress(project.current_phase) if project_progress else 0 }}%;"></div>
+                                        <div class="progress-fill" style="width: {{ (pnum * 25 if pnum <= 4 else 100) }}%;"></div>
                                     </div>
-                                    <span class="progress-text">{{ project_progress(project.current_phase) if project_progress else 0 }}%</span>
+                                    <span class="progress-text">{{ (pnum * 25 if pnum <= 4 else 100) }}%</span>
                                 </div>
                             </div>
                             <div class="project-card-footer">
                                 <a href="{{ url_for('project.wizard', project_id=project.id) }}" class="btn btn-primary btn-sm">
-                                    {% if project.current_phase == 'delivery' %}Revisar{% else %}Continuar{% endif %}
+                                    {% if pnum >= 4 %}Revisar{% else %}Continuar{% endif %}
                                 </a>
-                                {% if project.current_phase == 'delivery' %}
+                                {% if pnum >= 4 %}
                                     <a href="{{ url_for('project.export_project', project_id=project.id) }}" class="btn btn-outline btn-sm">
                                         📦 Exportar
                                     </a>
